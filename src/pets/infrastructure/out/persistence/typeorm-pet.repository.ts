@@ -22,8 +22,22 @@ export class TypeOrmPetRepository implements PetRepositoryPort {
     }));
   }
 
+  async getById(id: string): Promise<DomainPet | null> {
+    const entity = await this.petEntityRepository.findOneBy({ id });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async create(pet: Omit<DomainPet, "id">): Promise<DomainPet> {
-    const entity = this.petEntityRepository.create(pet);
+    const savedEntity = await this.petEntityRepository.save(pet);
+    return this.toDomain(savedEntity);
+  }
+
+  async update(id: string, pet: Omit<DomainPet, "id">): Promise<DomainPet | null> {
+    const entity = await this.petEntityRepository.findOneBy({ id });
+    if (!entity) {
+      return null;
+    }
+    Object.assign(entity, pet);
     await this.petEntityRepository.save(entity);
     return this.toDomain(entity);
   }

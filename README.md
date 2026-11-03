@@ -2,14 +2,6 @@
 
 REST API built with NestJS and a hexagonal structure.
 
-## Pet endpoints
-
-- `POST /api/v1/pets` — creates a pet.
-- `GET /api/v1/pets` — returns the pets as a JSON array.
-- `GET /api/v1/pets/:id` — returns a pet by ID.
-- `PATCH /api/v1/pets/:id` — updates a pet.
-- `DELETE /api/v1/pets/:id` — deletes a pet.
-
 All pet endpoints are protected with Auth0 JWT.
 - `GET /api/v1/docs` — interactive OpenAPI documentation.
 
@@ -25,7 +17,7 @@ Local authorization, clinic tenant isolation, and role resolution (`clinic_user`
 
 ## Run locally
 
-Requirements: Node.js 20 or later and PostgreSQL.
+Requirements: Node.js 22 or later and PostgreSQL.
 
 1. Configure the database and Auth0 values in `.env` using `.env.example` as a reference:
    - `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`
