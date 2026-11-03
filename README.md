@@ -1,12 +1,16 @@
 # Animal Clinic API
 
-REST API built with NestJS and a hexagonal structure. The current API surface is
-intentionally limited to listing pets; new resources and routes will be added
-as they are designed.
+REST API built with NestJS and a hexagonal structure.
 
-## Current endpoint
+## Pet endpoints
 
-- `GET /api/v1/pets` — returns the pets as a JSON array (protected with Auth0 JWT).
+- `POST /api/v1/pets` — creates a pet.
+- `GET /api/v1/pets` — returns the pets as a JSON array.
+- `GET /api/v1/pets/:id` — returns a pet by ID.
+- `PATCH /api/v1/pets/:id` — updates a pet.
+- `DELETE /api/v1/pets/:id` — deletes a pet.
+
+All pet endpoints are protected with Auth0 JWT.
 - `GET /api/v1/docs` — interactive OpenAPI documentation.
 
 ## Architecture

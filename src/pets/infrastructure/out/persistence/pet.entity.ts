@@ -6,7 +6,6 @@ export class PetEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  // TODO validate
   @Column({ type: "varchar", length: 100 })
   name!: string;
 
