@@ -7,11 +7,12 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node ./dist/nest-main.js",
     "start:dev": "ts-node-dev --respawn ./src/nest-main.ts",
-    "test": "npx jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate -d src/infrastructure/database/data-source.ts",
     "migration:run": "npm run typeorm -- migration:run -d src/infrastructure/database/data-source.ts",
-    "migration:revert": "npm run typeorm -- migration:revert -d src/infrastructure/database/data-source.ts"
+    "migration:revert": "npm run typeorm -- migration:revert -d src/infrastructure/database/data-source.ts",
+    "seed:admin": "ts-node ./src/infrastructure/database/seeds/seed-platform-admin.ts"
   },
   "repository": {
     "type": "git",
@@ -43,14 +44,17 @@
     "typeorm": "^1.1.2"
   },
   "devDependencies": {
+    "@nestjs/testing": "^12.3.3",
     "@types/express": "^4.17.17",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.14.0",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
+    "@types/supertest": "^7.2.1",
     "@typescript/native": "npm:typescript@^7.0.2",
     "jest": "^29.4.3",
     "prettier": "^2.8.4",
+    "supertest": "^7.3.1",
     "swagger-ui-express": "^4.6.2",
     "ts-jest": "^29.4.15",
     "ts-node": "^10.9.1",

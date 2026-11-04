@@ -3,10 +3,13 @@ import { PetRepositoryPort } from "../ports/out/pet-repository.port";
 import { UpdatePetUseCasePort } from "../ports/in/update-pet.port";
 
 export class UpdatePetUseCase implements UpdatePetUseCasePort {
-    constructor(private readonly petRepository: PetRepositoryPort) { }
+  constructor(private readonly petRepository: PetRepositoryPort) {}
 
-    execute(id: string, pet: Omit<Pet, "id">): Promise<Pet | null> {
-        return this.petRepository.update(id, pet);
-    }
-
+  execute(
+    id: string,
+    pet: Partial<Omit<Pet, "id">>,
+    clinicIds?: string[],
+  ): Promise<Pet | null> {
+    return this.petRepository.update(id, pet, clinicIds);
+  }
 }

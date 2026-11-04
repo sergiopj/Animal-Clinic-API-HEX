@@ -1,7 +1,7 @@
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { ClinicRepositoryPort } from "../../../application/ports/out/clinic-repository.port";
-import { Clinic } from "../../../domain/clinic";
+import { Clinic, ClinicStatus } from "../../../domain/clinic";
 import { ClinicEntity } from "./clinic.entity";
 
 export class TypeOrmClinicRepository implements ClinicRepositoryPort {
@@ -24,6 +24,64 @@ export class TypeOrmClinicRepository implements ClinicRepositoryPort {
     });
     const savedEntity = await this.clinicEntityRepository.save(entity);
 
+    return this.toDomain(savedEntity);
+  }
+
+  async findAll(): Promise<Clinic[]> {
+    const entities = await this.clinicEntityRepository.find();
+    return entities.map((entity) => this.toDomain(entity));
+  }
+
+  async findById(id: string): Promise<Clinic | null> {
+    const entity = await this.clinicEntityRepository.findOneBy({ id });
+    return entity ? this.toDomain(entity) : null;
+  }
+
+  async findByIds(ids: string[]): Promise<Clinic[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    const entities = await this.clinicEntityRepository.findBy({ id: In(ids) });
+    return entities.map((entity) => this.toDomain(entity));
+  }
+
+  async update(
+    id: string,
+    clinic: Partial<Omit<Clinic, "id">>,
+  ): Promise<Clinic | null> {
+    const entity = await this.clinicEntityRepository.findOneBy({ id });
+    if (!entity) {
+      return null;
+    }
+
+    if (clinic.name !== undefined) entity.name = clinic.name;
+    if (clinic.status !== undefined) entity.status = clinic.status;
+    if (clinic.phone !== undefined) entity.phone = clinic.phone;
+    if (clinic.contactEmail !== undefined)
+      entity.contactEmail = clinic.contactEmail;
+    if (clinic.address) {
+      if (clinic.address.street !== undefined)
+        entity.street = clinic.address.street;
+      if (clinic.address.city !== undefined) entity.city = clinic.address.city;
+      if (clinic.address.postalCode !== undefined)
+        entity.postalCode = clinic.address.postalCode;
+      if (clinic.address.countryCode !== undefined)
+        entity.countryCode = clinic.address.countryCode;
+      if (clinic.address.region !== undefined)
+        entity.region = clinic.address.region;
+    }
+
+    const savedEntity = await this.clinicEntityRepository.save(entity);
+    return this.toDomain(savedEntity);
+  }
+
+  async updateStatus(id: string, status: ClinicStatus): Promise<Clinic | null> {
+    const entity = await this.clinicEntityRepository.findOneBy({ id });
+    if (!entity) {
+      return null;
+    }
+    entity.status = status;
+    const savedEntity = await this.clinicEntityRepository.save(entity);
     return this.toDomain(savedEntity);
   }
 

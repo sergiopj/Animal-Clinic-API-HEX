@@ -12,6 +12,7 @@ describe("GetAllPetsUseCase", () => {
         species: Species.Cat,
         gender: Gender.Female,
         birthdate: "2020-05-10",
+        clinicId: "a0000000-0000-4000-8000-000000000001",
       },
     ];
     const petRepository: PetRepositoryPort = {

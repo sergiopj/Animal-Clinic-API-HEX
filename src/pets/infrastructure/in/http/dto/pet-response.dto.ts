@@ -23,6 +23,12 @@ export class PetResponseDto {
   })
   birthdate!: string;
 
+  @ApiProperty({
+    format: "uuid",
+    example: "b3b0b3b1-5b2a-4b2a-9b1a-123456789abc",
+  })
+  clinicId!: string;
+
   static fromDomain(pet: Pet): PetResponseDto {
     return {
       id: pet.id,
@@ -30,6 +36,7 @@ export class PetResponseDto {
       species: pet.species,
       gender: pet.gender,
       birthdate: pet.birthdate,
+      clinicId: pet.clinicId,
     };
   }
 }

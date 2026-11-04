@@ -1,10 +1,12 @@
-import { ExecutionContext, Injectable } from "@nestjs/common";
+import { ExecutionContext, Injectable, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 
 @Injectable()
 export class Auth0JwtAuthGuard extends AuthGuard("auth0-jwt") {
+  private readonly logger = new Logger(Auth0JwtAuthGuard.name);
+
   constructor(private readonly reflector: Reflector) {
     super();
   }
@@ -30,10 +32,7 @@ export class Auth0JwtAuthGuard extends AuthGuard("auth0-jwt") {
     status?: any,
   ): TUser {
     if (err || !user) {
-      console.error("[Auth0JwtAuthGuard] Authentication failed:", {
-        error: err?.message || err,
-        info: info?.message || info,
-      });
+      this.logger.warn(`Authentication failed: ${err?.message || info?.message || "unauthorized"}`);
     }
 
     return super.handleRequest(err, user, info, context, status);

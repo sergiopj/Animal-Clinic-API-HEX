@@ -5,7 +5,7 @@ import { PetRepositoryPort } from "../ports/out/pet-repository.port";
 export class GetByIdPetUseCase implements GetByIdPetUseCasePort {
   constructor(private readonly petRepository: PetRepositoryPort) {}
 
-  execute(id: string): Promise<Pet | null> {
-    return this.petRepository.getById(id);
+  execute(id: string, clinicIds?: string[]): Promise<Pet | null> {
+    return this.petRepository.getById(id, clinicIds);
   }
 }

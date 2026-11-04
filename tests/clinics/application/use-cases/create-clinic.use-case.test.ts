@@ -24,8 +24,21 @@ describe("CreateClinicUseCase", () => {
       status: ClinicStatus.Active,
     };
     const clinicRepository: ClinicRepositoryPort = {
-      create: jest.fn<(clinic: Omit<Clinic, "id">) => Promise<Clinic>>()
+      create: jest
+        .fn<(clinic: Omit<Clinic, "id">) => Promise<Clinic>>()
         .mockResolvedValue(createdClinic),
+      findAll: jest.fn<() => Promise<Clinic[]>>(),
+      findById: jest.fn<(id: string) => Promise<Clinic | null>>(),
+      findByIds: jest.fn<(ids: string[]) => Promise<Clinic[]>>(),
+      update: jest.fn<
+        (
+          id: string,
+          clinic: Partial<Omit<Clinic, "id">>,
+        ) => Promise<Clinic | null>
+      >(),
+      updateStatus: jest.fn<
+        (id: string, status: ClinicStatus) => Promise<Clinic | null>
+      >(),
     };
     const useCase = new CreateClinicUseCase(clinicRepository);
 

@@ -4,8 +4,8 @@ info:
   title: Animal Clinic API
   version: 1.0.0
   description: >
-    Target API contract. JWT authentication with Auth0 Bearer tokens is
-    configured. Clinic-scoped authorization remains to be implemented.
+    Animal Clinic API with multi-clinic tenant isolation, role-based authorization,
+    and Auth0 JWT authentication.
 
 servers:
   - url: http://localhost:3000/api/v1
@@ -20,12 +20,18 @@ paths:
       operationId: listPets
       summary: List pets
       description: >
-        Target behavior: lists pets available in the clinic context authorized
-        for the authenticated user. Membership in another clinic does not grant
-        access to this clinic's pets. Clinic authorization is not implemented
-        yet.
+        Lists pets in clinics authorized for the authenticated user.
+        Clinic members receive pets for clinics they belong to; platform admins receive pets across all clinics.
       tags:
         - Pets
+      parameters:
+        - name: clinicId
+          in: query
+          required: false
+          description: Filter pets by a specific authorized clinic ID
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: A list of pets
@@ -34,7 +40,406 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Pet"
+                  $ref: "#/components/schemas/PetResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+    post:
+      operationId: createPet
+      summary: Create a pet
+      description: >
+        Creates a new pet in the specified clinic. The caller must be a member of the clinic or a platform admin.
+      tags:
+        - Pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePetRequest"
+      responses:
+        "201":
+          description: Pet created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PetResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /pets/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Pet ID
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      operationId: getPetById
+      summary: Get a pet by ID
+      description: >
+        Retrieves a pet by ID. Returns 404 if the pet does not exist or belongs to an unauthorized clinic.
+      tags:
+        - Pets
+      responses:
+        "200":
+          description: Pet details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PetResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      operationId: updatePet
+      summary: Update a pet by ID
+      description: >
+        Updates an existing pet. If moving the pet to a new clinic, the caller must have membership in the target clinic or be a platform admin.
+      tags:
+        - Pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePetRequest"
+      responses:
+        "200":
+          description: Pet updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PetResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: deletePet
+      summary: Delete a pet by ID
+      description: >
+        Deletes a pet. Caller must belong to the pet's clinic or be a platform admin.
+      tags:
+        - Pets
+      responses:
+        "204":
+          description: Pet deleted successfully
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /clinics:
+    get:
+      operationId: listClinics
+      summary: List clinics
+      description: >
+        Lists clinics authorized for the current user. Platform admins receive all clinics; clinic staff receive clinics they belong to.
+      tags:
+        - Clinics
+      responses:
+        "200":
+          description: A list of clinics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClinicResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+    post:
+      operationId: createClinic
+      summary: Create a clinic
+      description: >
+        Creates a new clinic. Restricted to platform administrators.
+      tags:
+        - Clinics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClinicRequest"
+      responses:
+        "201":
+          description: Clinic created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /clinics/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Clinic ID
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      operationId: getClinicById
+      summary: Get a clinic by ID
+      description: >
+        Retrieves clinic details. Clinic staff can only access clinics they belong to; returns 404 otherwise.
+      tags:
+        - Clinics
+      responses:
+        "200":
+          description: Clinic details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      operationId: updateClinic
+      summary: Update a clinic
+      description: >
+        Updates clinic details. Restricted to platform administrators.
+      tags:
+        - Clinics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClinicRequest"
+      responses:
+        "200":
+          description: Clinic updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: deactivateClinic
+      summary: Deactivate a clinic
+      description: >
+        Soft-deactivates a clinic (setting status to inactive) without cascading deletes on pets or records. Restricted to platform administrators.
+      tags:
+        - Clinics
+      responses:
+        "204":
+          description: Clinic deactivated successfully
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /clinics/{clinicId}/memberships:
+    parameters:
+      - name: clinicId
+        in: path
+        required: true
+        description: Clinic ID
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      operationId: listClinicMemberships
+      summary: List clinic memberships
+      description: >
+        Lists staff memberships for the clinic. Restricted to clinic_admin of this clinic or platform_admin.
+      tags:
+        - Clinic Memberships
+      responses:
+        "200":
+          description: List of memberships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClinicMembershipResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+    post:
+      operationId: assignClinicMembership
+      summary: Assign a user membership in a clinic
+      description: >
+        Assigns an existing provisioned user to the clinic with role clinic_user or clinic_admin. Restricted to clinic_admin of this clinic or platform_admin.
+      tags:
+        - Clinic Memberships
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignClinicMembershipRequest"
+      responses:
+        "201":
+          description: Membership assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicMembershipResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: User is already a member of this clinic
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+
+  /clinics/{clinicId}/memberships/{userId}:
+    parameters:
+      - name: clinicId
+        in: path
+        required: true
+        description: Clinic ID
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        description: User ID
+        schema:
+          type: string
+          format: uuid
+
+    put:
+      operationId: updateClinicMembershipRole
+      summary: Update a user's role in a clinic
+      description: >
+        Updates membership role to clinic_user or clinic_admin. Restricted to clinic_admin of this clinic or platform_admin.
+      tags:
+        - Clinic Memberships
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClinicMembershipRequest"
+      responses:
+        "200":
+          description: Membership role updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicMembershipResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: revokeClinicMembership
+      summary: Revoke a user's membership in a clinic
+      description: >
+        Removes the user's membership in the clinic. Restricted to clinic_admin of this clinic or platform_admin.
+      tags:
+        - Clinic Memberships
+      responses:
+        "204":
+          description: Membership revoked successfully
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users:
+    get:
+      operationId: listUsers
+      summary: List provisioned users
+      description: >
+        Lists all provisioned user accounts. Restricted to platform administrators.
+      tags:
+        - Users
+      responses:
+        "200":
+          description: List of provisioned users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /users/me:
+    get:
+      operationId: getCurrentUser
+      summary: Get current authenticated user profile and clinic memberships
+      description: >
+        Returns the authenticated user's local account identity and active clinic memberships.
+      tags:
+        - Users
+      responses:
+        "200":
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentUserProfileResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -48,7 +453,7 @@ components:
       bearerFormat: JWT
 
   schemas:
-    Pet:
+    PetResponse:
       type: object
       required:
         - id
@@ -73,6 +478,229 @@ components:
           type: string
           format: date
           example: "2020-03-15"
+        clinicId:
+          type: string
+          format: uuid
+          nullable: true
+          example: "a0000000-0000-4000-8000-000000000001"
+
+    CreatePetRequest:
+      type: object
+      required:
+        - name
+        - species
+        - gender
+        - birthdate
+        - clinicId
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          example: Luna
+        species:
+          type: string
+          enum: [dog, cat, fish, bird, reptile]
+        gender:
+          type: string
+          enum: [male, female]
+        birthdate:
+          type: string
+          format: date
+          example: "2020-03-15"
+        clinicId:
+          type: string
+          format: uuid
+          example: "a0000000-0000-4000-8000-000000000001"
+
+    UpdatePetRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          example: Luna Updated
+        species:
+          type: string
+          enum: [dog, cat, fish, bird, reptile]
+        gender:
+          type: string
+          enum: [male, female]
+        birthdate:
+          type: string
+          format: date
+          example: "2020-03-15"
+        clinicId:
+          type: string
+          format: uuid
+          example: "a0000000-0000-4000-8000-000000000002"
+
+    ClinicAddress:
+      type: object
+      required:
+        - street
+        - city
+        - postalCode
+        - countryCode
+        - region
+      properties:
+        street:
+          type: string
+          example: "Paseo de Gracia, 123"
+        city:
+          type: string
+          example: "Barcelona"
+        postalCode:
+          type: string
+          example: "08008"
+        countryCode:
+          type: string
+          enum: [ES, PT, GB]
+          example: "ES"
+        region:
+          type: string
+          example: "Catalonia"
+
+    ClinicResponse:
+      type: object
+      required:
+        - id
+        - name
+        - address
+        - phone
+        - contactEmail
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Central Pet Care"
+        address:
+          $ref: "#/components/schemas/ClinicAddress"
+        phone:
+          type: string
+          example: "+34931234567"
+        contactEmail:
+          type: string
+          format: email
+          example: "central@example.com"
+        status:
+          type: string
+          enum: [active, inactive]
+          example: "active"
+
+    CreateClinicRequest:
+      type: object
+      required:
+        - name
+        - address
+        - phone
+        - contactEmail
+      properties:
+        name:
+          type: string
+          maxLength: 150
+          example: "Central Pet Care"
+        address:
+          $ref: "#/components/schemas/ClinicAddress"
+        phone:
+          type: string
+          example: "+34600123456"
+        contactEmail:
+          type: string
+          format: email
+          example: "contact@clinic.example"
+
+    UpdateClinicRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+          example: "Central Pet Care Updated"
+        address:
+          $ref: "#/components/schemas/ClinicAddress"
+        phone:
+          type: string
+          example: "+34600123456"
+        contactEmail:
+          type: string
+          format: email
+          example: "updated@clinic.example"
+
+    ClinicMembershipResponse:
+      type: object
+      required:
+        - clinicId
+        - userId
+        - role
+      properties:
+        clinicId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [clinic_user, clinic_admin]
+
+    AssignClinicMembershipRequest:
+      type: object
+      required:
+        - userId
+        - role
+      properties:
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [clinic_user, clinic_admin]
+
+    UpdateClinicMembershipRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum: [clinic_user, clinic_admin]
+
+    UserResponse:
+      type: object
+      required:
+        - id
+        - issuer
+        - subject
+      properties:
+        id:
+          type: string
+          format: uuid
+        issuer:
+          type: string
+          example: "https://auth0.example.com/"
+        subject:
+          type: string
+          example: "auth0|607f1f77bcf86cd799439011"
+        platformRole:
+          type: string
+          enum: [platform_admin]
+          nullable: true
+
+    CurrentUserProfileResponse:
+      type: object
+      required:
+        - user
+        - clinicMemberships
+      properties:
+        user:
+          $ref: "#/components/schemas/UserResponse"
+        clinicMemberships:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClinicMembershipResponse"
 
     Problem:
       type: object
@@ -94,6 +722,12 @@ components:
           type: string
 
   responses:
+    BadRequest:
+      description: Invalid request parameters or body
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
     Unauthorized:
       description: The JWT is missing or invalid
       content:
@@ -101,7 +735,13 @@ components:
           schema:
             $ref: "#/components/schemas/Problem"
     Forbidden:
-      description: The authenticated user is not allowed to perform this operation
+      description: The authenticated user is not allowed to perform this operation or is not provisioned
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Resource not found or belongs to an unauthorized clinic
       content:
         application/problem+json:
           schema:

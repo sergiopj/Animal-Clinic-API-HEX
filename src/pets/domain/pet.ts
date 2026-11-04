@@ -17,4 +17,5 @@ export interface Pet {
   species: Species;
   gender: Gender;
   birthdate: string;
+  clinicId: string;
 }
