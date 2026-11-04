@@ -40,10 +40,8 @@
 
 ## Security and authorization
 
-- Protected endpoints require an authenticated user. JWT access tokens issued by
-  an external identity provider are planned; Auth0 is the current candidate,
-  subject to confirming the provider and its operational requirements before
-  implementation.
+- Protected endpoints require an authenticated user. The API currently
+  authenticates Auth0 JWT access tokens.
 - Document the authentication and authorization requirements for every endpoint.
   Explicitly identify public endpoints, such as health checks or API
   documentation, rather than assuming they are public.
@@ -90,20 +88,27 @@
   clinic access, and cross-clinic access whenever protected routes are
   implemented.
 
-The following initial roles are planned; refine their permissions as clinic
-workflows are defined:
+The initial authorization policy is:
 
-- `clinic_user`: may manage pets and clinical records within their authorized
-  clinic.
-- `clinic_admin`: has `clinic_user` permissions and may manage users and
-  settings for their clinic.
-- `group_admin`: may manage clinics within their group. Access to clinical
-  records across clinics must be explicitly authorized and audited.
-- `platform_admin`: platform-wide operational access is out of scope for the
-  initial implementation.
-- Do not introduce a global `admin` role by default. Keep clinic-level and
-  group-level administration distinct from any future platform-wide
-  administration.
+| Action | `clinic_user` | `clinic_admin` | `platform_admin` |
+| --- | --- | --- | --- |
+| View pets in an authorized clinic | Yes | Yes | Yes, across clinics |
+| Create, update, and delete pets in an authorized clinic | Yes | Yes | Yes, across clinics |
+| Manage users in an authorized clinic | No | Yes | Yes, across clinics |
+| Create and manage clinics | No | No | Yes |
+
+- `clinic_user` and `clinic_admin` are clinic-scoped roles. Store them on the
+  user's membership in each clinic; a user's role may differ between clinics.
+- `platform_admin` is a global role on the local user account, not a clinic
+  membership role. It grants the platform-wide access listed above.
+- Resolve the local user by the validated external identity (`iss` + `sub`).
+  Resolve clinic memberships and roles from trusted local authorization data;
+  token validity alone does not grant access to clinic data.
+- Enforce clinic membership and resource ownership for every pet operation.
+  `platform_admin` may access any clinic explicitly, but its sensitive
+  cross-clinic actions must be authorized and audited.
+- Do not introduce a generic global `admin` role or `group_admin` role unless
+  product requirements define their scope and permissions separately.
 
 ## Request validation
 
