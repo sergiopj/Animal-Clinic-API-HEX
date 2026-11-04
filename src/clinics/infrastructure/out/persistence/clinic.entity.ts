@@ -1,8 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Check, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { ClinicStatus } from "../../../domain/clinic";
 import { ClinicCountryCode } from "../../../domain/clinic-address";
 
 @Entity({ name: "clinics" })
+@Check("CHK_clinics_status", `"status" IN ('active', 'inactive')`)
+@Check("CHK_clinics_country_code", `"countryCode" IN ('ES', 'PT', 'GB')`)
 export class ClinicEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string;

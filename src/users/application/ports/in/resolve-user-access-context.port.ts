@@ -1,7 +1,7 @@
 import { ExternalIdentity, UserAccessContext } from "../../access-context";
 
-export const RESOLVE_USER_ACCESS_CONTEXT = Symbol(
-    "RESOLVE_USER_ACCESS_CONTEXT",
+export const RESOLVE_USER_ACCESS_CONTEXT_USE_CASE = Symbol(
+    "RESOLVE_USER_ACCESS_CONTEXT_USE_CASE",
 );
 
 export interface ResolveUserAccessContextPort {
