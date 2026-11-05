@@ -24,3 +24,4 @@ export class MakePetClinicIdNotNull1793900000000 implements MigrationInterface {
     );
   }
 }
+

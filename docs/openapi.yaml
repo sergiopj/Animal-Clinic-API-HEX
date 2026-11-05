@@ -461,6 +461,7 @@ components:
         - species
         - gender
         - birthdate
+        - clinicId
       properties:
         id:
           type: string
@@ -481,7 +482,6 @@ components:
         clinicId:
           type: string
           format: uuid
-          nullable: true
           example: "a0000000-0000-4000-8000-000000000001"
 
     CreatePetRequest:
@@ -649,12 +649,20 @@ components:
     AssignClinicMembershipRequest:
       type: object
       required:
-        - userId
         - role
       properties:
         userId:
           type: string
           format: uuid
+          description: ID of an existing provisioned user (either userId or issuer+subject is required)
+        issuer:
+          type: string
+          description: Auth0 issuer URL for pre-provisioning
+          example: "https://auth0.example.com/"
+        subject:
+          type: string
+          description: Auth0 subject claim for pre-provisioning
+          example: "auth0|654321fedcba"
         role:
           type: string
           enum: [clinic_user, clinic_admin]

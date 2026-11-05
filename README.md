@@ -2,7 +2,7 @@
 
 REST API built with NestJS and a hexagonal architecture, featuring multi-clinic tenant isolation, role-based access control, and Auth0 JWT authentication.
 
-Interactive OpenAPI documentation is available at `GET /docs` (or `/api/v1/docs`).
+Interactive OpenAPI documentation is available at `GET /api/v1/docs` (JSON spec at `GET /api/v1/docs-json`).
 
 ---
 
@@ -167,28 +167,28 @@ npm test -- --runInBand
 
 ## API Summary
 
-All endpoints (except documentation/health) require `Authorization: Bearer <token>`.
+All business endpoints are mounted under the global prefix `/api/v1` and require `Authorization: Bearer <token>` (except documentation endpoints).
 
-### Pets (`/pets`)
-- `GET /pets`: List pets in authorized clinic(s). Platform admins can query across all clinics. Supports optional `?clinicId=` filter.
-- `GET /pets/:id`: Get pet details. Scoped to authorized clinics; returns `404` for unauthorized clinic pets.
-- `POST /pets`: Create pet in an authorized clinic (`clinicId` required).
-- `PUT /pets/:id`: Update pet details or transfer between authorized clinics.
-- `DELETE /pets/:id`: Delete pet within authorized clinic.
+### Pets (`/api/v1/pets`)
+- `GET /api/v1/pets`: List pets in authorized clinic(s). Platform admins can query across all clinics. Supports optional `?clinicId=` filter.
+- `GET /api/v1/pets/:id`: Get pet details. Scoped to authorized clinics; returns `404` for unauthorized clinic pets.
+- `POST /api/v1/pets`: Create pet in an authorized clinic (`clinicId` required).
+- `PUT /api/v1/pets/:id`: Update pet details or transfer between authorized clinics.
+- `DELETE /api/v1/pets/:id`: Delete pet within authorized clinic.
 
-### Clinics (`/clinics`)
-- `GET /clinics`: List clinics accessible to the current user (all for platform admin, authorized clinics for staff).
-- `GET /clinics/:id`: Get clinic details.
-- `POST /clinics`: Create clinic (`platform_admin` only).
-- `PUT /clinics/:id`: Update clinic (`platform_admin` only).
-- `DELETE /clinics/:id`: Soft-deactivate clinic (`status = inactive`, `platform_admin` only).
+### Clinics (`/api/v1/clinics`)
+- `GET /api/v1/clinics`: List clinics accessible to the current user (all for platform admin, authorized clinics for staff).
+- `GET /api/v1/clinics/:id`: Get clinic details.
+- `POST /api/v1/clinics`: Create clinic (`platform_admin` only).
+- `PUT /api/v1/clinics/:id`: Update clinic (`platform_admin` only).
+- `DELETE /api/v1/clinics/:id`: Soft-deactivate clinic (`status = inactive`, `platform_admin` only).
 
-### Clinic Memberships (`/clinics/:clinicId/memberships`)
-- `GET /clinics/:clinicId/memberships`: List staff memberships (`clinic_admin` of clinic or `platform_admin`).
-- `POST /clinics/:clinicId/memberships`: Assign user to clinic or pre-provision a new user by Auth0 issuer and subject (`clinic_user` or `clinic_admin`).
-- `PUT /clinics/:clinicId/memberships/:userId`: Update membership role.
-- `DELETE /clinics/:clinicId/memberships/:userId`: Revoke membership.
+### Clinic Memberships (`/api/v1/clinics/:clinicId/memberships`)
+- `GET /api/v1/clinics/:clinicId/memberships`: List staff memberships (`clinic_admin` of clinic or `platform_admin`).
+- `POST /api/v1/clinics/:clinicId/memberships`: Assign user to clinic or pre-provision a new user by Auth0 issuer and subject (`clinic_user` or `clinic_admin`).
+- `PUT /api/v1/clinics/:clinicId/memberships/:userId`: Update membership role.
+- `DELETE /api/v1/clinics/:clinicId/memberships/:userId`: Revoke membership.
 
-### Users (`/users`)
-- `GET /users`: List provisioned users (`platform_admin` only).
-- `GET /users/me`: View current authenticated identity profile and active clinic memberships.
+### Users (`/api/v1/users`)
+- `GET /api/v1/users`: List provisioned users (`platform_admin` only).
+- `GET /api/v1/users/me`: View current authenticated identity profile and active clinic memberships.
